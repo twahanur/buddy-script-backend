@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.test
+
+/src/generated/prisma
+.vercel
+test-requests
+workflow
+API_ENDPOINTS_COMPLETE.csv
+postman.tar.gz
+k6-monitor
+test.js
+k6-tests
+/uploads
+docker-compose.yml

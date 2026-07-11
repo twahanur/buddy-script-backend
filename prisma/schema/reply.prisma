@@ -1,0 +1,27 @@
+model Reply {
+  id         Int         @id @default(autoincrement())
+  comment_id Int
+  comment    Comment     @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  user_id    Int
+  user       User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  content    String
+  likes_count Int        @default(0)
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  likes      ReplyLike[]
+
+  @@index([comment_id])
+  @@index([user_id])
+}
+
+model ReplyLike {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  reply_id   Int
+  reply      Reply    @relation(fields: [reply_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
+  @@unique([user_id, reply_id])
+  @@index([reply_id])
+}

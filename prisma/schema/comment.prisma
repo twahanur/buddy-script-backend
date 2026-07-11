@@ -1,0 +1,29 @@
+model Comment {
+  id            Int           @id @default(autoincrement())
+  post_id       Int
+  post          Post          @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user_id       Int
+  user          User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  content       String
+  likes_count   Int           @default(0)
+  replies_count Int           @default(0)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  likes         CommentLike[]
+  replies       Reply[]
+
+  @@index([post_id])
+  @@index([user_id])
+}
+
+model CommentLike {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  comment_id Int
+  comment    Comment  @relation(fields: [comment_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
+  @@unique([user_id, comment_id])
+  @@index([comment_id])
+}

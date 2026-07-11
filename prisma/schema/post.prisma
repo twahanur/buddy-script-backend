@@ -1,0 +1,43 @@
+model Post {
+  id             Int            @id @default(autoincrement())
+  user_id        Int
+  user           User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  content        String
+  image_url      String?
+  visibility     PostVisibility @default(PUBLIC)
+  likes_count    Int            @default(0)
+  comments_count Int            @default(0)
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  likes          PostLike[]
+  comments       Comment[]
+
+  @@index([user_id])
+  @@index([created_at(sort: Desc)])
+}
+
+model PostLike {
+  id         Int          @id @default(autoincrement())
+  user_id    Int
+  user       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  post_id    Int
+  post       Post         @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  type       ReactionType @default(LIKE)
+  created_at DateTime     @default(now())
+
+  @@unique([user_id, post_id])
+  @@index([post_id])
+}
+
+enum PostVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum ReactionType {
+  LIKE
+  LOVE
+  HAHA
+  ANGRY
+}
+
