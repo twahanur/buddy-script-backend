@@ -1,4 +1,4 @@
-import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, UseGuards, Inject } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service';
 import { AuthGuard } from '../auth/auth.guard';
@@ -6,7 +6,7 @@ import { AuthGuard } from '../auth/auth.guard';
 @Controller('upload')
 @UseGuards(AuthGuard)
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(@Inject(UploadService) private readonly uploadService: UploadService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('image'))

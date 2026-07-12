@@ -1,13 +1,13 @@
-import { Controller, Post, Get, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, UseGuards, Inject, Patch, Param, ParseIntPipe } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { CreatePostDto, GetFeedQueryDto } from './dto/posts.dto';
+import { CreatePostDto, GetFeedQueryDto, UpdatePostDto } from './dto/posts.dto';
 import { AuthGuard, AuthenticatedUser } from '../auth/auth.guard';
-import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { CurrentUser } from '../../decorators/current-user.decorator';
 
 @Controller('posts')
 @UseGuards(AuthGuard)
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(@Inject(PostsService) private readonly postsService: PostsService) {}
 
   @Post()
   async create(
@@ -31,6 +31,20 @@ export class PostsController {
     return {
       success: true,
       data: feed,
+    };
+  }
+
+  @Patch(':id')
+  async update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePostDto,
+  ) {
+    const post = await this.postsService.updatePost(user.id, id, dto);
+    return {
+      success: true,
+      message: 'Post updated successfully.',
+      data: post,
     };
   }
 }

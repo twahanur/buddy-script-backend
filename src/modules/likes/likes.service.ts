@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { QueuesService } from '../queues/queues.service';
@@ -8,9 +8,9 @@ import { ReactionType } from '@prisma/client';
 @Injectable()
 export class LikesService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly redisService: RedisService,
-    private readonly queuesService: QueuesService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(RedisService) private readonly redisService: RedisService,
+    @Inject(QueuesService) private readonly queuesService: QueuesService,
   ) {}
 
   async togglePostLike(userId: number, dto: TogglePostLikeDto) {

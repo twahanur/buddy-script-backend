@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { QueuesService } from '../queues/queues.service';
-import { CreatePostDto } from './dto/posts.dto';
+import { CreatePostDto, UpdatePostDto } from './dto/posts.dto';
 
 @Injectable()
 export class PostsService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly redisService: RedisService,
-    private readonly queuesService: QueuesService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(RedisService) private readonly redisService: RedisService,
+    @Inject(QueuesService) private readonly queuesService: QueuesService,
   ) {}
 
   async createPost(userId: number, dto: CreatePostDto) {
@@ -50,8 +50,14 @@ export class PostsService {
     };
   }
 
-  async getFeedPosts(currentUserId: number, cursor?: number, limit: number = 20) {
-    const cacheKey = `feed:${currentUserId}:c:${cursor || 'none'}:l:${limit}`;
+  async getFeedPosts(currentUserId: number, cursor?: number | string, limit: number | string = 20) {
+    const parsedLimit = typeof limit === 'string' ? parseInt(limit, 10) : limit;
+    const parsedCursor = typeof cursor === 'string' ? parseInt(cursor, 10) : cursor;
+
+    const finalLimit = isNaN(parsedLimit) ? 20 : parsedLimit;
+    const finalCursor = parsedCursor && !isNaN(parsedCursor) ? parsedCursor : undefined;
+
+    const cacheKey = `feed:${currentUserId}:c:${finalCursor || 'none'}:l:${finalLimit}`;
     
     try {
       const cached = await this.redisService.get(cacheKey);
@@ -63,8 +69,8 @@ export class PostsService {
     }
 
     const posts = await this.prisma.post.findMany({
-      take: limit,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      take: finalLimit,
+      ...(finalCursor ? { cursor: { id: finalCursor }, skip: 1 } : {}),
       where: {
         OR: [
           { visibility: 'PUBLIC' },
@@ -149,7 +155,7 @@ export class PostsService {
       };
     });
 
-    const nextCursor = posts.length === limit ? posts[posts.length - 1].id : null;
+    const nextCursor = posts.length === finalLimit ? posts[posts.length - 1].id : null;
     const result = {
       posts: formattedPosts,
       nextCursor,
@@ -162,6 +168,52 @@ export class PostsService {
     }
 
     return result;
+  }
+
+  async updatePost(userId: number, postId: number, dto: UpdatePostDto) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found.');
+    }
+
+    if (post.user_id !== userId) {
+      throw new ForbiddenException('You do not have permission to update this post.');
+    }
+
+    const updateData: any = {};
+    if (dto.content !== undefined) {
+      updateData.content = dto.content;
+    }
+    if (dto.image_url !== undefined) {
+      updateData.image_url = dto.image_url || null;
+    }
+    if (dto.visibility !== undefined) {
+      updateData.visibility = dto.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
+    }
+
+    const updatedPost = await this.prisma.post.update({
+      where: { id: postId },
+      data: updateData,
+      include: {
+        user: {
+          select: { id: true, first_name: true, last_name: true },
+        },
+      },
+    });
+
+    this.invalidateFeedCache();
+
+    if (dto.image_url && dto.image_url !== post.image_url) {
+      this.queuesService.addImageProcessingJob({
+        post_id: updatedPost.id,
+        image_url: dto.image_url,
+      });
+    }
+
+    return updatedPost;
   }
 
   private invalidateFeedCache() {

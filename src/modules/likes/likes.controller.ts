@@ -1,13 +1,13 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Inject } from '@nestjs/common';
 import { LikesService } from './likes.service';
 import { TogglePostLikeDto, ToggleCommentLikeDto, ToggleReplyLikeDto } from './dto/likes.dto';
 import { AuthGuard, AuthenticatedUser } from '../auth/auth.guard';
-import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { CurrentUser } from '../../decorators/current-user.decorator';
 
 @Controller('likes')
 @UseGuards(AuthGuard)
 export class LikesController {
-  constructor(private readonly likesService: LikesService) {}
+  constructor(@Inject(LikesService) private readonly likesService: LikesService) {}
 
   @Post('posts')
   async togglePost(

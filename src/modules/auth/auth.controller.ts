@@ -1,9 +1,9 @@
-import { Controller, Post, Get, Body, Res, Req, UseGuards, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, Res, Req, UseGuards, BadRequestException, HttpCode, HttpStatus, Inject } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 import { AuthGuard, AuthenticatedUser } from './auth.guard';
-import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { CurrentUser } from '../../decorators/current-user.decorator';
 import { validatePassword } from '../../shared/validation';
 import { RedisService } from '../../redis/redis.service';
 import * as jwt from 'jsonwebtoken';
@@ -11,8 +11,8 @@ import * as jwt from 'jsonwebtoken';
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly authService: AuthService,
-    private readonly redisService: RedisService,
+    @Inject(AuthService) private readonly authService: AuthService,
+    @Inject(RedisService) private readonly redisService: RedisService,
   ) {}
 
   @Post('register')

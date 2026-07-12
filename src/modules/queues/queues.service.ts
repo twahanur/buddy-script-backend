@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
 import { Queue, Worker, Job } from 'bullmq';
 import { RedisService } from '../../redis/redis.service';
 
@@ -8,10 +8,11 @@ export class QueuesService implements OnModuleInit, OnModuleDestroy {
   private imageProcessingQueue!: Queue;
   private workers: Worker[] = [];
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(@Inject(RedisService) private readonly redisService: RedisService) {}
 
   onModuleInit() {
     const connection = this.redisService.getClient();
+
 
     // Initialize Queues
     this.notificationsQueue = new Queue('notifications', { connection: connection as any });

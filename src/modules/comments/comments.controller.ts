@@ -1,13 +1,13 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Inject } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto, CreateReplyDto } from './dto/comments.dto';
 import { AuthGuard, AuthenticatedUser } from '../auth/auth.guard';
-import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { CurrentUser } from '../../decorators/current-user.decorator';
 
 @Controller('comments')
 @UseGuards(AuthGuard)
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(@Inject(CommentsService) private readonly commentsService: CommentsService) {}
 
   @Post()
   async createComment(

@@ -15,6 +15,21 @@ export class CreatePostDto {
   visibility?: string; // "PUBLIC" or "PRIVATE"
 }
 
+export class UpdatePostDto {
+  @IsString()
+  @IsOptional()
+  @IsNotEmpty({ message: 'Post content cannot be empty.' })
+  content?: string;
+
+  @IsString()
+  @IsOptional()
+  image_url?: string;
+
+  @IsString()
+  @IsOptional()
+  visibility?: string; // "PUBLIC" or "PRIVATE"
+}
+
 export class GetFeedQueryDto {
   @IsOptional()
   @Type(() => Number)

@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
-import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,10 +11,16 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
+    ? process.env.CORS_ALLOWED_ORIGINS
+        .replace(/['"]/g, '')
+        .split(',')
+        .map(origin => origin.trim())
+        .filter(origin => origin.length > 0)
+    : ['http://localhost:3000'];
+
   app.enableCors({
-    origin: process.env.CORS_ALLOWED_ORIGINS
-      ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-      : 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   });
 

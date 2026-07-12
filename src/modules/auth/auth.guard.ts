@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Inject } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { RedisService } from '../../redis/redis.service';
 
@@ -11,7 +11,7 @@ export interface AuthenticatedUser {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(@Inject(RedisService) private readonly redisService: RedisService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();

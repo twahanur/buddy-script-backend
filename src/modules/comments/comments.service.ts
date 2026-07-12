@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { QueuesService } from '../queues/queues.service';
@@ -7,9 +7,9 @@ import { CreateCommentDto, CreateReplyDto } from './dto/comments.dto';
 @Injectable()
 export class CommentsService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly redisService: RedisService,
-    private readonly queuesService: QueuesService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(RedisService) private readonly redisService: RedisService,
+    @Inject(QueuesService) private readonly queuesService: QueuesService,
   ) {}
 
   async addComment(userId: number, dto: CreateCommentDto) {
