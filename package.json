@@ -4,8 +4,8 @@
   "description": "Buddy Script Social Network Backend",
   "main": "src/main.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/main.js",
+    "build": "npx prisma generate && tsc",
+    "start": "npx prisma db push && node dist/main.js",
     "dev": "tsx watch src/main.ts",
     "prisma:push": "npx prisma db push",
     "prisma:generate": "npx prisma generate"
