@@ -6,16 +6,31 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client!: Redis;
 
   onModuleInit() {
-    const host = process.env.REDIS_HOST || 'localhost';
-    const port = process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379;
-    const password = process.env.REDIS_PASSWORD || undefined;
+    const redisUrl = process.env.REDIS_URL;
+    const useTls = process.env.REDIS_TLS === 'true' || (redisUrl && redisUrl.startsWith('rediss://'));
 
-    this.client = new Redis({
-      host,
-      port,
-      password,
+    const redisOptions: any = {
       maxRetriesPerRequest: null, // Critical for BullMQ compatibility
-    });
+    };
+
+    if (useTls) {
+      redisOptions.tls = {};
+    }
+
+    if (redisUrl) {
+      this.client = new Redis(redisUrl, redisOptions);
+    } else {
+      const host = process.env.REDIS_HOST || 'localhost';
+      const port = process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379;
+      const password = process.env.REDIS_PASSWORD || undefined;
+
+      this.client = new Redis({
+        host,
+        port,
+        password,
+        ...redisOptions,
+      });
+    }
   }
 
   onModuleDestroy() {
